@@ -39,7 +39,7 @@ impl Database {
         self.db.lock().unwrap().get(type_name::<I>()).is_some()
     }
 
-    pub fn insert<T: 'static + Sync + Send + Any + Entry + Clone>(&mut self, value: T) -> T {
+    pub fn insert<T: 'static + Sync + Send + Any + Entry + Clone>(&mut self, mut value: T) -> T {
         if !self.table_exists::<T>() {
             self.new_table::<T>();
         }
@@ -51,10 +51,10 @@ impl Database {
 
         table.insert(
             value.get_id(),
-            Box::new(entry.clone()) as Box<dyn 'static + Sync + Send + Any>,
+            Box::new(value.clone()) as Box<dyn 'static + Sync + Send + Any>,
         );
 
-        entry
+        value
     }
 
     pub fn get_by_id<T: 'static + Clone>(&self, id: u32) -> Option<T>
