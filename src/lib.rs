@@ -4,8 +4,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-pub use derive_macro::Entry;
-
 #[cfg(test)]
 mod tests;
 
@@ -13,6 +11,8 @@ pub trait Entry {
     fn get_id(&self) -> u32;
     fn set_id(&mut self, id: u32);
 }
+
+pub use derive_macro::Entry;
 
 type Table = HashMap<u32, Box<dyn 'static + Sync + Send + Any>>;
 
