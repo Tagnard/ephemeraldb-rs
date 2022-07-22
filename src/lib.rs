@@ -44,18 +44,13 @@ impl Database {
             self.new_table::<T>();
         }
 
-        let mut counters = self.counters.lock().unwrap();
-        *counters.entry(type_name::<T>().to_string()).or_insert(0) += 1;
-        let entry_id = *counters.get(&type_name::<T>().to_string()).unwrap();
-
-        let mut entry = value;
-        entry.set_id(entry_id);
+        value.set_id(self.counter_inc::<T>());
 
         let mut table = self.db.lock().unwrap();
         let table = table.get_mut(type_name::<T>()).unwrap();
 
         table.insert(
-            entry_id,
+            value.get_id(),
             Box::new(entry.clone()) as Box<dyn 'static + Sync + Send + Any>,
         );
 
@@ -123,6 +118,12 @@ impl Database {
 
     pub fn counter<T: 'static + Entry>(&self) -> u32 {
         let table = self.counters.lock().unwrap();
+        *table.get(&type_name::<T>().to_string()).unwrap()
+    }
+
+    pub fn counter_inc<T: 'static + Entry>(&self) -> u32 {
+        let mut table = self.counters.lock().unwrap();
+        *table.get_mut(&type_name::<T>().to_string()).unwrap() += 1;
         *table.get(&type_name::<T>().to_string()).unwrap()
     }
 }
