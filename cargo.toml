@@ -1,6 +1,9 @@
-[workspace]
+[package]
+name = "ephemeraldb"
+version = "0.1.0"
+edition = "2021"
 
-members = [
-    "database",
-    "derive"
-]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+derive-macro = { path = "derive-macro" }

@@ -4,6 +4,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+pub use derive_macro::Entry;
+
 #[cfg(test)]
 mod tests;
 
