@@ -120,6 +120,11 @@ impl Database {
             .filter(predicate)
             .count() as u32
     }
+
+    pub fn counter<T: 'static + Entry>(&self) -> u32 {
+        let table = self.counters.lock().unwrap();
+        *table.get(&type_name::<T>().to_string()).unwrap()
+    }
 }
 
 impl Default for Database {
