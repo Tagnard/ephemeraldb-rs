@@ -19,7 +19,6 @@ type Table = HashMap<Uuid, Box<dyn 'static + Sync + Send + Any>>;
 #[derive(Clone)]
 pub struct Database {
     db: Arc<Mutex<HashMap<String, Table>>>,
-    pub counters: Arc<Mutex<HashMap<String, u32>>>,
 }
 
 impl Database {
@@ -28,11 +27,6 @@ impl Database {
             type_name::<I>().to_string(),
             HashMap::<Uuid, Box<dyn 'static + Sync + Send + Any>>::new(),
         );
-
-        self.counters
-            .lock()
-            .unwrap()
-            .insert(type_name::<I>().to_string(), 0);
     }
 
     fn table_exists<I: Any + Entry>(&self) -> bool {
@@ -119,7 +113,6 @@ impl Default for Database {
     fn default() -> Self {
         Self {
             db: Arc::new(Mutex::new(HashMap::new())),
-            counters: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 }
