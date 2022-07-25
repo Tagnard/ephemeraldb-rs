@@ -16,12 +16,8 @@ fn impl_entry_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Entry for #name {
-            fn get_id(&self) -> u32 {
+            fn get_id(&self) -> Uuid {
                 self.id
-            }
-
-            fn set_id(&mut self, id: u32) {
-                self.id = id;
             }
         }
 

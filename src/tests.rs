@@ -1,24 +1,26 @@
+use uuid::Uuid;
+
 use crate::{Database, Entry};
 
 #[derive(Debug, Clone, Entry, PartialEq)]
 pub struct ItemOne {
-    pub id: u32,
+    pub id: Uuid,
 }
 
 impl ItemOne {
-    pub fn new(id: u32) -> Self {
-        Self { id }
+    pub fn new() -> Self {
+        Self { id: Uuid::new_v4() }
     }
 }
 
 #[derive(Debug, Clone, Entry, PartialEq)]
 pub struct ItemTwo {
-    pub id: u32,
+    pub id: Uuid,
 }
 
 impl ItemTwo {
-    pub fn new(id: u32) -> Self {
-        Self { id }
+    pub fn new() -> Self {
+        Self { id: Uuid::new_v4() }
     }
 }
 
@@ -26,9 +28,9 @@ impl ItemTwo {
 fn count_inserted_items() {
     let mut db = Database::default();
 
-    db.insert(ItemOne::new(1));
-    db.insert(ItemOne::new(2));
-    db.insert(ItemTwo::new(1));
+    db.insert(ItemOne::new());
+    db.insert(ItemOne::new());
+    db.insert(ItemTwo::new());
 
     assert_eq!(db.count::<ItemOne, _>(|_| true), 2);
     assert_eq!(db.count::<ItemTwo, _>(|_| true), 1);
@@ -38,21 +40,15 @@ fn count_inserted_items() {
 fn get_inserted_items() {
     let mut db = Database::default();
 
-    db.insert(ItemOne::new(1));
-    db.insert(ItemTwo::new(1));
-    db.insert(ItemTwo::new(2));
+    let one = db.insert(ItemOne::new());
+    let two = db.insert(ItemTwo::new());
+    let three = db.insert(ItemTwo::new());
 
+    assert_eq!(db.get::<ItemOne, _>(|i| i.id == one.id).unwrap()[0], one);
+    assert_eq!(db.get::<ItemTwo, _>(|i| i.id == two.id).unwrap()[0], two);
     assert_eq!(
-        db.get::<ItemOne, _>(|i| i.id == 1).unwrap()[0],
-        ItemOne::new(1)
-    );
-    assert_eq!(
-        db.get::<ItemTwo, _>(|i| i.id == 1).unwrap()[0],
-        ItemTwo::new(1)
-    );
-    assert_eq!(
-        db.get::<ItemTwo, _>(|i| i.id == 2).unwrap()[0],
-        ItemTwo::new(2)
+        db.get::<ItemTwo, _>(|i| i.id == three.id).unwrap()[0],
+        three
     );
 }
 
@@ -60,9 +56,9 @@ fn get_inserted_items() {
 fn verify_counters() {
     let mut db = Database::default();
 
-    db.insert(ItemOne::new(1));
-    db.insert(ItemTwo::new(1));
-    db.insert(ItemOne::new(2));
+    db.insert(ItemOne::new());
+    db.insert(ItemTwo::new());
+    db.insert(ItemOne::new());
 
     assert_eq!(db.counter::<ItemOne>(), 2);
     assert_eq!(db.counter::<ItemTwo>(), 1);

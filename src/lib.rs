@@ -3,18 +3,18 @@ use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
 };
+use uuid::Uuid;
 
 #[cfg(test)]
 mod tests;
 
 pub trait Entry {
-    fn get_id(&self) -> u32;
-    fn set_id(&mut self, id: u32);
+    fn get_id(&self) -> Uuid;
 }
 
 pub use derive_macro::Entry;
 
-type Table = HashMap<u32, Box<dyn 'static + Sync + Send + Any>>;
+type Table = HashMap<Uuid, Box<dyn 'static + Sync + Send + Any>>;
 
 #[derive(Clone)]
 pub struct Database {
@@ -26,7 +26,7 @@ impl Database {
     fn new_table<I: Any + Entry>(&mut self) {
         self.db.lock().unwrap().insert(
             type_name::<I>().to_string(),
-            HashMap::<u32, Box<dyn 'static + Sync + Send + Any>>::new(),
+            HashMap::<Uuid, Box<dyn 'static + Sync + Send + Any>>::new(),
         );
 
         self.counters
@@ -44,8 +44,6 @@ impl Database {
             self.new_table::<T>();
         }
 
-        value.set_id(self.counter_inc::<T>());
-
         let mut table = self.db.lock().unwrap();
         let table = table.get_mut(type_name::<T>()).unwrap();
 
@@ -57,7 +55,7 @@ impl Database {
         value
     }
 
-    pub fn get_by_id<T: 'static + Clone>(&self, id: u32) -> Option<T>
+    pub fn get_by_id<T: 'static + Clone>(&self, id: Uuid) -> Option<T>
     where
         T: Clone,
     {
