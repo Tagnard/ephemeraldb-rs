@@ -51,15 +51,3 @@ fn get_inserted_items() {
         three
     );
 }
-
-#[test]
-fn verify_counters() {
-    let mut db = Database::default();
-
-    db.insert(ItemOne::new());
-    db.insert(ItemTwo::new());
-    db.insert(ItemOne::new());
-
-    assert_eq!(db.counter::<ItemOne>(), 2);
-    assert_eq!(db.counter::<ItemTwo>(), 1);
-}
