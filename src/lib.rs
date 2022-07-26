@@ -33,7 +33,7 @@ impl Database {
         self.db.lock().unwrap().get(type_name::<I>()).is_some()
     }
 
-    pub fn insert<T: 'static + Sync + Send + Any + Entry + Clone>(&mut self, mut value: T) -> T {
+    pub fn insert<T: 'static + Sync + Send + Any + Entry + Clone>(&mut self, value: T) -> T {
         if !self.table_exists::<T>() {
             self.new_table::<T>();
         }
