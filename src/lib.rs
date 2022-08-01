@@ -1,7 +1,7 @@
 use std::{
     any::{type_name, Any},
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{Arc, RwLock},
 };
 use uuid::Uuid;
 
@@ -18,19 +18,19 @@ type Table = HashMap<Uuid, Box<dyn 'static + Sync + Send + Any>>;
 
 #[derive(Clone)]
 pub struct Database {
-    db: Arc<Mutex<HashMap<String, Table>>>,
+    db: Arc<RwLock<HashMap<String, Table>>>,
 }
 
 impl Database {
     fn new_table<I: Any + Entry>(&mut self) {
-        self.db.lock().unwrap().insert(
+        self.db.write().unwrap().insert(
             type_name::<I>().to_string(),
             HashMap::<Uuid, Box<dyn 'static + Sync + Send + Any>>::new(),
         );
     }
 
     fn table_exists<I: Any + Entry>(&self) -> bool {
-        self.db.lock().unwrap().get(type_name::<I>()).is_some()
+        self.db.read().unwrap().get(type_name::<I>()).is_some()
     }
 
     pub fn insert<T: 'static + Sync + Send + Any + Entry + Clone>(&mut self, value: T) -> T {
@@ -38,8 +38,8 @@ impl Database {
             self.new_table::<T>();
         }
 
-        let mut table = self.db.lock().unwrap();
-        let table = table.get_mut(type_name::<T>()).unwrap();
+        let mut db = self.db.write().unwrap();
+        let table = db.get_mut(type_name::<T>()).unwrap();
 
         table.insert(
             value.get_id(),
@@ -53,7 +53,7 @@ impl Database {
     where
         T: Clone,
     {
-        let table = self.db.lock().unwrap();
+        let table = self.db.read().unwrap();
         let table = table.get(&type_name::<T>().to_string()).unwrap();
 
         if let Some(val) = table.get(&id) {
@@ -68,7 +68,7 @@ impl Database {
     where
         T: Clone,
     {
-        let table = self.db.lock().unwrap();
+        let table = self.db.read().unwrap();
         let table = table.get(&type_name::<T>().to_string()).unwrap();
 
         table
@@ -81,7 +81,7 @@ impl Database {
     where
         T: Clone,
     {
-        let table = self.db.lock().unwrap();
+        let table = self.db.read().unwrap();
         let table = table.get(&type_name::<T>().to_string()).unwrap();
 
         let t = table
@@ -98,7 +98,7 @@ impl Database {
     }
 
     pub fn count<T: 'static + Entry, P: FnMut(&&T) -> bool>(&self, predicate: P) -> u32 {
-        let table = self.db.lock().unwrap();
+        let table = self.db.read().unwrap();
         let table = table.get(&type_name::<T>().to_string()).unwrap();
 
         table
@@ -107,12 +107,18 @@ impl Database {
             .filter(predicate)
             .count() as u32
     }
+
+    pub fn stats(&self) {
+        for table in self.db.read().iter().enumerate() {
+            println!("{:?}", table);
+        }
+    }
 }
 
 impl Default for Database {
     fn default() -> Self {
         Self {
-            db: Arc::new(Mutex::new(HashMap::new())),
+            db: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }
